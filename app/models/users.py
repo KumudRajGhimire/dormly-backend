@@ -55,5 +55,6 @@ class User(TimestampMixin, Base):
 
 
     listings = relationship("Listing", back_populates = "seller")
-    campus = relationship("Campus")
-    hostel = relationship("Hostel")
+    campus = relationship("Campus", back_populates = "users")
+    hostel = relationship("Hostel", back_populates = "users")
+    wishlists = relationship("Wishlist", back_populates = "user", cascade = "all, delete-orphan")

@@ -9,3 +9,12 @@ class CampusResponse(BaseModel):
     model_config = {
         "from_attributes": True 
     }
+
+class CampusMiniResponse(BaseModel):
+    id: UUID 
+    name: str 
+    slug: str 
+
+    model_config = {
+        "from_attributes": True 
+    }

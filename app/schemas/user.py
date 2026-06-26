@@ -1,3 +1,5 @@
+from app.schemas.hostel import HostelMiniResponse
+from app.schemas.campus import CampusMiniResponse
 from pydantic import BaseModel, EmailStr
 from uuid import UUID
 
@@ -19,6 +21,18 @@ class UserResponse(BaseModel):
 
     campus_id: UUID
     hostel_id: UUID | None 
+
+    model_config = {
+        "from_attributes": True
+    }
+
+class SellerMiniResponse(BaseModel):
+    id: UUID
+    name: str
+    username: str 
+
+    campus: CampusMiniResponse
+    hostel: HostelMiniResponse | None = None
 
     model_config = {
         "from_attributes": True

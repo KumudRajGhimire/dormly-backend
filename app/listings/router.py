@@ -1,18 +1,19 @@
+from app.listings.service import update_listing_status
 from app.models.users import User
 from app.models.listings import Listing
 from app.models.images import ListingImage
 from app.models.category import Category
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy import desc
-from sqlalchemy.orm import Session
+from sqlalchemy import desc, case
+from sqlalchemy.orm import Session, joinedload
 from app.db.session import get_db
 from app.schemas.listing import ListingCreate, ListingResponse, ListingUpdate, UploadUrlResponse, ListingImageCreate, PaginatedListingResponse
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, get_optional_current_user
 from uuid import UUID
 from app.services.s3 import generate_upload_url
 from app.listings.service import get_owned_listing
 from typing import Optional
-from app.core.enums import ListingCondition, ListingStatus
+from app.core.enums import ListingCondition, ListingStatus, ListingSort
 from sqlalchemy import or_
 
 
@@ -51,14 +52,23 @@ def get_listing(
     search: Optional[str] = None,
     min_price: Optional[int] = None,
     max_price: Optional[int] = None,
-    sort: str = "newest",
+    sort: ListingSort = ListingSort.NEWEST,
 
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ):
-    query = db.query(Listing)
+    query = (
+        db.query(Listing)
+        .options(
+            joinedload(Listing.seller).joinedload(User.campus),
+            joinedload(Listing.seller).joinedload(User.hostel),
+            joinedload(Listing.category),
+            joinedload(Listing.images),
+        )
+    )
 
     if category_id:
         query = query.filter(
@@ -94,9 +104,48 @@ def get_listing(
         )
 
     if sort == "newest":
-        query = query.order_by(
-            desc(Listing.created_at)
-        )
+        if current_user:
+
+            if current_user.hostel_id:
+
+                priority = case(
+                    (
+                        Listing.seller.has(
+                            User.hostel_id == current_user.hostel_id
+                        ),
+                        3,
+                    ),
+                    (
+                        Listing.seller.has(
+                            User.campus_id == current_user.campus_id
+                        ),
+                        2,
+                    ),
+                    else_=1,
+                )
+
+            else:
+
+                priority = case(
+                    (
+                        Listing.seller.has(
+                            User.campus_id == current_user.campus_id
+                        ),
+                        2,
+                    ),
+                    else_=1,
+                )
+
+            query = query.order_by(
+                priority.desc(),
+                Listing.created_at.desc(),
+            )
+
+        else:
+
+            query = query.order_by(
+                Listing.created_at.desc()
+            )
 
     elif sort == "price_asc":
         query = query.order_by(
@@ -183,3 +232,15 @@ def attach_image(listing_id: UUID, payload: ListingImageCreate, current_user: Us
     return{
         "message": "Image attached successfully"
     }
+
+@router.patch("/{listing_id}/mark-sold")
+def mark_sold(listing_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return update_listing_status(listing_id, ListingStatus.SOLD, current_user, db)
+
+@router.patch("/{listing_id}/reserve")
+def reserve_listing(listing_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return update_listing_status(listing_id, ListingStatus.RESERVED, current_user, db)
+
+@router.patch("/{listing_id}/activate")
+def activate_listing(listing_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return update_listing_status(listing_id, ListingStatus.ACTIVE, current_user, db)

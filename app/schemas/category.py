@@ -9,4 +9,13 @@ class CategoryResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
-    
+
+class CategoryMiniResponse(BaseModel):
+    id: UUID
+    name: str 
+    slug: str
+    icon: str|None=None
+
+    model_config = {
+        "from_attributes": True
+    }

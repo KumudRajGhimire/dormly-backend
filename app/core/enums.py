@@ -17,3 +17,8 @@ class ListingStatus(str, Enum):
     SOLD = "sold"
     REMOVED = "removed"
 
+class ListingSort(str, Enum):
+    NEWEST = "newest"
+    PRICE_ASC = "price_asc"
+    PRICE_DESC = "price_desc"
+

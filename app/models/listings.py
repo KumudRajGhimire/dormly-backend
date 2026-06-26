@@ -53,6 +53,7 @@ class Listing(TimestampMixin, Base):
     seller = relationship("User", back_populates="listings")
     images = relationship("ListingImage", back_populates="listing", cascade="all, delete-orphan")
     category = relationship("Category", back_populates="listings")
+    wishlists = relationship("Wishlist", back_populates="listing", cascade="all, delete-orphan")
     
 
 

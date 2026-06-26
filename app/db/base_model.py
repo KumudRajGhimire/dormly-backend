@@ -7,3 +7,4 @@ from app.models.images import ListingImage
 from app.models.category import Category
 from app.models.campus import Campus
 from app.models.hostel import Hostel
+from app.models.wishlist import Wishlist

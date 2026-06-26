@@ -2,6 +2,8 @@ from uuid import UUID
 from pydantic import BaseModel 
 from datetime import datetime
 from app.core.enums import ListingCondition, ListingStatus
+from app.schemas.user import SellerMiniResponse
+from app.schemas.category import CategoryMiniResponse
 
 class ListingCreate(BaseModel):
     title: str
@@ -23,8 +25,8 @@ class ListingResponse(BaseModel):
     title: str 
     description: str 
     price: int 
-    seller_id: UUID 
-    category_id: UUID
+    seller: SellerMiniResponse 
+    category: CategoryMiniResponse
     condition: ListingCondition
     status: ListingStatus
 

@@ -8,6 +8,8 @@ from app.listings.router import router as list_router
 from app.categories.router import router as category_router
 from app.campuses.router import router as campus_router
 from app.hostels.router import router as hostel_router
+from app.users.router import router as user_router
+from app.wishlist.router import router as wishlist_router
 
 app = FastAPI()
 
@@ -16,6 +18,8 @@ app.include_router(list_router)
 app.include_router(category_router)
 app.include_router(campus_router)
 app.include_router(hostel_router)
+app.include_router(user_router)
+app.include_router(wishlist_router)
 
 @app.get("/")
 def root():

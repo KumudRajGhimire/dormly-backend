@@ -34,3 +34,4 @@ class Hostel(TimestampMixin, Base):
     )
 
     campus = relationship("Campus", back_populates = "hostels")
+    users = relationship("User", back_populates = "hostel")
