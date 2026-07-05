@@ -37,13 +37,13 @@ def seed_categories(db):
 
 def seed_campuses(db):
     campuses = [
-        ("BMS College of Engineering", "bmsce", "Bangalore", "Karnataka"),
-        ("RV College of Engineering", "rvce", "Bangalore", "Karnataka"),
-        ("PES University", "pes", "Bangalore", "Karnataka"),
-        ("MS Ramaiah Institute of Technology", "msrit", "Bangalore", "Karnataka"),
+        ("BMS College of Engineering", "bmsce", "Bangalore", "Karnataka", "bmsce.ac.in"),
+        ("RV College of Engineering", "rvce", "Bangalore", "Karnataka", "rvce.edu.in"),
+        ("PES University", "pes", "Bangalore", "Karnataka", "pes.edu"),
+        ("MS Ramaiah Institute of Technology", "msrit", "Bangalore", "Karnataka", "msrit.edu"),
     ]
 
-    for name, slug, city, state in campuses:
+    for name, slug, city, state, email_domain in campuses:
         exists = (
             db.query(Campus)
             .filter(Campus.slug == slug)
@@ -56,7 +56,8 @@ def seed_campuses(db):
                     name=name,
                     slug=slug,
                     city=city,
-                    state=state
+                    state=state,
+                    email_domain=email_domain
                 )
             )
 

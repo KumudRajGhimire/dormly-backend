@@ -38,5 +38,11 @@ class Campus(TimestampMixin, Base):
         nullable = False
     )
 
+    email_domain: Mapped[str] = mapped_column(
+        String(100),
+        unique = True,
+        nullable = False
+    )
+
     hostels = relationship("Hostel", back_populates = "campus")
     users = relationship("User", back_populates = "campus")

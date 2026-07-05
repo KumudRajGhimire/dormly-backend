@@ -55,6 +55,11 @@ class Listing(TimestampMixin, Base):
     category = relationship("Category", back_populates="listings")
     wishlists = relationship("Wishlist", back_populates="listing", cascade="all, delete-orphan")
     
+    conversations = relationship(
+        "Conversation",
+        back_populates="listing",
+        cascade="all, delete-orphan",
+    )
 
 
     

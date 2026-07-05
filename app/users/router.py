@@ -46,11 +46,11 @@ def get_user_listings(user_id: UUID, page: int = Query(1, ge=1), page_size: int 
             joinedload(Listing.category),
             joinedload(Listing.images),
         )
-        .filter(Listing.seller_id == user_id, Listing.status == ListingStatus.ACTIVE)
+        .filter(Listing.seller_id == user_id)
         .order_by(desc(Listing.created_at))
     )
     total = query.count()
-    items = (query.offset(page-1)*page_size).limit(page_size).all()
+    items = query.offset((page-1)*page_size).limit(page_size).all()
 
     return{
         "items": items,

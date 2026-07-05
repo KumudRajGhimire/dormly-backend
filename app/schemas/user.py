@@ -9,9 +9,8 @@ class UserCreate(BaseModel):
     email: EmailStr
     name: str
     password: str
-
-    campus_id: UUID
     hostel_id: UUID | None = None
+
 
 class UserResponse(BaseModel):
     id: UUID
@@ -19,8 +18,6 @@ class UserResponse(BaseModel):
     email: EmailStr
     name: str
 
-    campus_id: UUID
-    hostel_id: UUID | None 
 
     model_config = {
         "from_attributes": True

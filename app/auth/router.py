@@ -8,6 +8,7 @@ from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import LoginCreate, LoginResponse
 from app.core.security import hash_password, verify_password, create_jwt
 from app.auth.dependencies import get_current_user
+from app.auth.service import get_campus_from_email
 
 
 
@@ -31,16 +32,12 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
             detail="Username already exists"
         )
 
-    campus = (
-        db.query(Campus)
-        .filter(Campus.id == payload.campus_id)
-        .first()
-    )
+    campus = get_campus_from_email(payload.email, db)
 
-    if not campus:
+    if campus is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Campus not found"
+            detail="The campus with your email domain is yet to be registered to Dormly."
         )
 
     hostel = None
@@ -54,9 +51,9 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
             .first()
         )
 
-        if not hostel:
+        if hostel is None:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Hostel not found or does not belong to this campus"
             )
 
@@ -79,7 +76,7 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
         email=payload.email,
         name=payload.name,
         hashed_password=hashed_pass,
-        campus_id=payload.campus_id,
+        campus_id=campus.id,
         hostel_id=payload.hostel_id
     )
     db.add(user)

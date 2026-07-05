@@ -58,3 +58,20 @@ class User(TimestampMixin, Base):
     campus = relationship("Campus", back_populates = "users")
     hostel = relationship("Hostel", back_populates = "users")
     wishlists = relationship("Wishlist", back_populates = "user", cascade = "all, delete-orphan")
+
+    buyer_conversations = relationship(
+        "Conversation",
+        foreign_keys="Conversation.buyer_id",
+        back_populates="buyer",
+    )
+
+    seller_conversations = relationship(
+        "Conversation",
+        foreign_keys="Conversation.seller_id",
+        back_populates="seller",
+    )
+
+    messages = relationship(
+        "Message",
+        back_populates="sender",
+    )

@@ -211,10 +211,10 @@ def update_listing(listing_id: UUID, payload: ListingUpdate, current_user: User 
     return listing 
 
 @router.post("/{listing_id}/upload-url", response_model = UploadUrlResponse)
-def get_upload_url(listing_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_upload_url(listing_id: UUID, content_type: str = Query("image/jpeg"), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     listing = get_owned_listing(listing_id, current_user, db)
 
-    return generate_upload_url(str(listing.id), "image/jpeg")
+    return generate_upload_url(str(listing.id), content_type)
 
 @router.post("/{listing_id}/images")
 def attach_image(listing_id: UUID, payload: ListingImageCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

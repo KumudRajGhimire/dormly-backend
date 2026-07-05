@@ -1,8 +1,15 @@
 import boto3
 import uuid
+from botocore.config import Config
 from app.core.config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME
 
-s3_client = boto3.client("s3", region_name = AWS_REGION, aws_access_key_id = AWS_ACCESS_KEY_ID, aws_secret_access_key = AWS_SECRET_ACCESS_KEY)
+s3_client = boto3.client(
+    "s3",
+    region_name=AWS_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"})
+)
 
 def generate_upload_url(listing_id: str, content_type: str):
     file_key = (f"listings/{listing_id}/"f"{uuid.uuid4()}")
