@@ -1,4 +1,4 @@
-from app.core.enums import ListingStatus
+from app.core.enums import ListingStatus, UserRole
 from fastapi import HTTPException, status
 from app.models.listings import Listing
 
@@ -9,7 +9,7 @@ def get_owned_listing(listing_id, current_user, db):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Listing not found"
         )
-    if listing.seller_id != current_user.id:
+    if listing.seller_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to access this listing"

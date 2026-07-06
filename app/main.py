@@ -19,7 +19,8 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",   # Vite
+        "http://localhost:5173",
+        "https://dormlyshop.vercel.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],

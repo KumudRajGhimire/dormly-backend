@@ -192,3 +192,35 @@ def forget_password(payload: ForgotPasswordRequest, db:Session=Depends(get_db)):
     )
 
     return {"message": "OTP sent successfully"}
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    user = (
+        db.query(User)
+        .filter(User.email == payload.email)
+        .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    valid = verify_otp(
+        email=payload.email,
+        otp=payload.otp,
+        purpose=OTPPurpose.PASSWORD_RESET,
+        db=db,
+    )
+
+    if not valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OTP",
+        )
+
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+
+    return {"message": "Password reset successfully"}
