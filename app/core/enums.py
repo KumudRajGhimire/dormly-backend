@@ -22,3 +22,6 @@ class ListingSort(str, Enum):
     PRICE_ASC = "price_asc"
     PRICE_DESC = "price_desc"
 
+class OTPPurpose(str, Enum):
+    EMAIL_VERIFICATION = "email_verification"
+    PASSWORD_RESET = "password_reset"

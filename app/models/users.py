@@ -1,4 +1,4 @@
-from sqlalchemy import String, UUID as SA_UUID, ForeignKey, Enum
+from sqlalchemy import String, UUID as SA_UUID, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid import UUID
 import uuid
@@ -51,6 +51,12 @@ class User(TimestampMixin, Base):
         SA_UUID(as_uuid=True),
         ForeignKey("hostels.id"),
         nullable = True
+    )
+
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default = False,
+        nullable = False
     )
 
 

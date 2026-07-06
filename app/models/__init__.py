@@ -7,3 +7,4 @@ from app.models.campus import Campus
 from app.models.hostel import Hostel
 from app.models.conversation import Conversation
 from app.models.message import Message
+from app.models.otp_verification import OTPVerification

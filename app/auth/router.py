@@ -4,17 +4,20 @@ from app.models.hostel import Hostel
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.schemas.user import UserCreate, UserResponse
-from app.schemas.auth import LoginCreate, LoginResponse
+from app.schemas.user import UserCreate, MessageResponse
+from app.schemas.auth import LoginCreate, LoginResponse, VerifyEmailRequest, ResendOTPRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.core.security import hash_password, verify_password, create_jwt
 from app.auth.dependencies import get_current_user
 from app.auth.service import get_campus_from_email
+from app.otp.service import create_otp
+from app.core.enums import OTPPurpose
+from app.otp.service import verify_otp
 
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=MessageResponse)
 def register_user(payload: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
@@ -82,8 +85,11 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    print("Before return: ", user)
-    return user
+
+    create_otp(email= user.email, purpose= OTPPurpose.EMAIL_VERIFICATION, db= db)
+    return {
+        "message":"Registration successful. Verify your email."
+    }
 
 @router.post("/login", response_model = LoginResponse)
 def login_user(payload: LoginCreate, db: Session = Depends(get_db)):
@@ -94,6 +100,9 @@ def login_user(payload: LoginCreate, db: Session = Depends(get_db)):
     if not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = "Incorrect password")
 
+    if not user.email_verified:
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = "Please verify your email first")
+
     token = create_jwt({
         "sub": str(user.id)
     })
@@ -103,9 +112,83 @@ def login_user(payload: LoginCreate, db: Session = Depends(get_db)):
         "token_type": "bearer"
     }
 
-@router.get("/me")
-def me(current_user: User = Depends(get_current_user)):
-    return{
-        "id": current_user.id,
-        "name": current_user.name
-    }
+@router.post("/verify-email")
+def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
+    user = (
+        db.query(User)
+        .filter(User.email == payload.email)
+        .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if user.email_verified:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Email already verified")
+
+    valid = verify_otp(
+        email=payload.email,
+        otp=payload.otp,
+        purpose=OTPPurpose.EMAIL_VERIFICATION,
+        db=db,
+    )
+
+    if not valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OTP",
+        )
+
+    user.email_verified = True
+    db.commit()
+    return {"message": "Email verified successfully"}
+
+@router.post("/resend-otp")
+def resend_otp(payload: ResendOTPRequest, db: Session = Depends(get_db)):
+    user = (
+        db.query(User)
+        .filter(User.email == payload.email)
+        .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if user.email_verified:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Email already verified")
+
+    create_otp(
+        email=payload.email,
+        purpose=OTPPurpose.EMAIL_VERIFICATION,
+        db=db,
+    )
+
+    return {"message": "OTP sent successfully"}
+
+@router.post("/forget-password")
+def forget_password(payload: ForgotPasswordRequest, db:Session=Depends(get_db)):
+    user = (
+    db.query(User)
+    .filter(User.email == payload.email)
+    .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    create_otp(
+        email=payload.email,
+        purpose=OTPPurpose.PASSWORD_RESET,
+        db=db,
+    )
+
+    return {"message": "OTP sent successfully"}

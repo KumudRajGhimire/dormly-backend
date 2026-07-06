@@ -34,3 +34,6 @@ class SellerMiniResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class MessageResponse(BaseModel):
+    message: str
