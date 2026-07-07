@@ -1,0 +1,33 @@
+# Environments
+venv/
+env/
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+alembic/__pycache__/
+
+# Secrets / Environment variables
+.env
+.env.*
+!.env.example
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

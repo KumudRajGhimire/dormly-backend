@@ -60,19 +60,7 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
                 detail="Hostel not found or does not belong to this campus"
             )
 
-    if payload.hostel_id:
-        hostel = (
-            db.query(Hostel)
-            .filter(Hostel.id == payload.hostel_id)
-            .first()
-        )
 
-        if hostel.campus_id != payload.campus_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Hostel does not belong to selected campus"
-            )
-    
     hashed_pass = hash_password(payload.password)
     user = User(
         username=payload.username,

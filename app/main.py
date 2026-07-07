@@ -40,3 +40,7 @@ app.include_router(chat_ws_router)
 @app.get("/")
 def root():
     return {"message":"Welcome to Dormly"}
+
+@app.get("/health")
+def health():
+    return {"status":"ok"}

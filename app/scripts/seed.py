@@ -9,17 +9,20 @@ from app.models.hostel import Hostel
 
 def seed_categories(db):
     categories = [
-        ("Electronics", "electronics"),
-        ("Books", "books"),
-        ("Furniture", "furniture"),
-        ("Cycles", "cycles"),
-        ("Fashion", "fashion"),
-        ("Gaming", "gaming"),
-        ("Notes", "notes"),
-        ("Others", "others"),
+        ("Electronics", "electronics", "/categories/electronics.png"),
+        ("Books", "books", None),
+        ("Furniture", "furniture", None),
+        ("Vehicles", "vehicles", None),
+        ("Fashion", "fashion", None),
+        ("Gaming", "gaming", None),
+        ("Notes", "notes", None),
+        ("Accessories", "accessories", None),
+        ("Sports", "sports", None),
+        ("Daily Essentials", "daily-essentials", None),
+        ("Others", "others", None),
     ]
 
-    for name, slug in categories:
+    for name, slug, icon in categories:
         exists = (
             db.query(Category)
             .filter(Category.slug == slug)
@@ -30,9 +33,12 @@ def seed_categories(db):
             db.add(
                 Category(
                     name=name,
-                    slug=slug
+                    slug=slug,
+                    icon=icon
                 )
             )
+        else:
+            exists.icon = icon
 
 
 def seed_campuses(db):
@@ -82,8 +88,9 @@ def seed_hostels(db):
     ).first()
 
     hostels = [
-        (bmsce.id, "Boys Hostel A", "boys-a"),
-        (bmsce.id, "Boys Hostel B", "boys-b"),
+        (bmsce.id, "International Hostel", "ih"),
+        (bmsce.id, "National Hostel 3", "nh3"),
+        (bmsce.id, "MH", "mh"),
         (bmsce.id, "Girls Hostel", "girls"),
 
         (rvce.id, "Boys Hostel", "boys"),
