@@ -8,3 +8,4 @@ from app.models.hostel import Hostel
 from app.models.conversation import Conversation
 from app.models.message import Message
 from app.models.otp_verification import OTPVerification
+from app.models.refresh_token import RefreshToken

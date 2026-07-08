@@ -81,3 +81,9 @@ class User(TimestampMixin, Base):
         "Message",
         back_populates="sender",
     )
+
+    refresh_tokens = relationship(
+        "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

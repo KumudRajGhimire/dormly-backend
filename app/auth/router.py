@@ -1,3 +1,9 @@
+from datetime import timezone
+from datetime import datetime
+from app.schemas.auth import LogoutRequest
+from app.auth.refresh_service import revoke_refresh_token
+from app.auth.refresh_service import verify_refresh_token
+from app.schemas.auth import RefreshTokenRequest
 from app.models.users import User
 from app.models.campus import Campus
 from app.models.hostel import Hostel
@@ -12,7 +18,8 @@ from app.auth.service import get_campus_from_email
 from app.otp.service import create_otp
 from app.core.enums import OTPPurpose
 from app.otp.service import verify_otp
-
+from app.auth.refresh_service import generate_refresh_token, store_refresh_token
+from app.models.refresh_token import RefreshToken
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -91,14 +98,33 @@ def login_user(payload: LoginCreate, db: Session = Depends(get_db)):
     if not user.email_verified:
         raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = "Please verify your email first")
 
-    token = create_jwt({
+    access_token = create_jwt({
         "sub": str(user.id)
     })
 
+    token_id, secret, refresh_token = generate_refresh_token()
+
+    store_refresh_token(user.id, token_id, secret, db)
+    db.commit()
+
     return {
-        "access_token": token,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
+
+@router.post("/logout")
+def logout(payload: LogoutRequest, db: Session = Depends(get_db)):
+    token = verify_refresh_token(payload.refresh_token, db)
+    if token:
+        revoke_refresh_token(token, db)
+    db.commit()
+
+    return{
+        "message": "Logged out successfully"
+    }
+
+    
 
 @router.post("/verify-email")
 def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
@@ -209,6 +235,59 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         )
 
     user.hashed_password = hash_password(payload.new_password)
+
+    (
+        db.query(RefreshToken)
+        .filter(
+            RefreshToken.user_id == user.id,
+            RefreshToken.revoked_at.is_(None)
+        ).update(
+            {
+                RefreshToken.revoked_at: datetime.now(timezone.utc)
+            },
+            synchronize_session=False
+        )
+    )
+
     db.commit()
 
     return {"message": "Password reset successfully"}
+
+
+@router.post("/refresh", response_model = LoginResponse)
+def refresh_access_token(payload: RefreshTokenRequest, db: Session = Depends(get_db)):
+    token = verify_refresh_token(payload.refresh_token, db)
+
+    if token is None:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Invalid refresh token"
+        )
+    
+    user = db.get(User, token.user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "User not found"
+        )
+
+    access_token = create_jwt(
+        {
+            "sub": str(user.id)
+        }
+    )
+
+    token_id, secret, refresh_token = generate_refresh_token()
+    new_token = store_refresh_token(user.id, token_id, secret, db)
+
+    revoke_refresh_token(token, db)
+
+    db.commit()
+    db.refresh(new_token)
+
+    return{
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
