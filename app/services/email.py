@@ -3,12 +3,11 @@ import boto3
 from app.core.config import (
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
-    AWS_REGION,
 )
 
 ses = boto3.client(
     "ses",
-    region_name=AWS_REGION,
+    region_name="eu-north-1",
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
