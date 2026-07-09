@@ -27,6 +27,7 @@ class SellerMiniResponse(BaseModel):
     id: UUID
     name: str
     username: str 
+    email: EmailStr
 
     campus: CampusMiniResponse
     hostel: HostelMiniResponse | None = None
