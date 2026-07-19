@@ -20,7 +20,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5174",
-        "https://dormlyshop.vercel.app"
+        "https://dormlyshop.vercel.app",
+        "https://exitems.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
